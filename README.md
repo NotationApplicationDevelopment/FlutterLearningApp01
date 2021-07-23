@@ -1,1 +1,2 @@
 # FlutterLearningApp01
+このプロジェクトは、DartもFlutterも全然知らない人による勉強用プロジェクトです
