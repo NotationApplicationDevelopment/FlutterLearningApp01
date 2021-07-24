@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:translator/translator.dart';
 
 class RandomWords extends StatefulWidget {
@@ -10,12 +11,54 @@ class RandomWords extends StatefulWidget {
 class _RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
   final _biggerFont = const TextStyle(fontSize: 18.0);
+  final _saved = <WordPair>{};
+  final _translated = Map<WordPair, String>();
+  final translator = GoogleTranslator();
+  Lock lock = Lock();
 
   @override
   Widget build(BuildContext context) {
+    lock = Lock();
     return Scaffold(
-      appBar: AppBar(title: const Text('Startup Name Generator')),
+      appBar: AppBar(
+        title: const Text('Startup Name Generator'),
+        actions: [
+          IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+        ],
+      ),
       body: _buildSuggestions(),
+    );
+
+  }
+
+  void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        // NEW lines from here...
+        builder: (BuildContext context) {
+          final tiles = _saved.map(
+            (WordPair pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase + "  (${_translated[pair]})",
+                  style: _biggerFont,
+                ),
+              );
+            },
+          );
+          final divided = ListTile.divideTiles(
+            context: context,
+            tiles: tiles,
+          ).toList();
+
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Saved Suggestions'),
+            ),
+            body: ListView(children: divided),
+          );
+        }, // ...to here.
+      ),
     );
   }
 
@@ -32,24 +75,63 @@ class _RandomWordsState extends State<RandomWords> {
           return _buildRow(_suggestions[index], index);
         });
   }
+  
+  Future<String> _waitAndTrans (WordPair str) async {
+    String? t = _translated[str];
+    if(t != null){
+      return t;
+    }
+    
+    var time = Duration(milliseconds: 1000);
+    await lock.synchronized(() async {
+      await Future.delayed(time);
+    });
+
+    String text;
+    try{
+      text = (await translator.translate(str.first + " " + str.second, from: 'en', to: 'ja', )).text;
+    }catch(e){
+      text = "Transration Error";
+    }
+
+    _translated[str] = text;
+    return text;
+  }
 
   Widget _buildRow(WordPair pair, index) {
-    final translator = GoogleTranslator();
-    var input = pair.first + " " + pair.second;
-    var trans = translator.translate(input, from: 'en', to: 'ja');
+    var trans = _waitAndTrans(pair);
+    final alreadySaved = _saved.contains(pair);  // NEW
 
-    return FutureBuilder<Translation>(
+    return FutureBuilder<String>(
       future: trans,
       builder: (context, snapshot) {
         String str;
         if (snapshot.hasData) {
-          str = "${snapshot.data!.text}  ($input)";
+          str = "${pair.asPascalCase}  (${snapshot.data!})";
         } else {
-          str = input;
+          str = pair.asPascalCase + "  (...)";
         }
-        return Text(
-          str,
-          style: _biggerFont,
+        return ListTile(
+
+          title: Text(
+            str,
+            style: _biggerFont,
+          ),
+
+          trailing: Icon(
+            alreadySaved ? Icons.favorite : Icons.favorite_border,
+            color: alreadySaved ? Colors.red : null,
+          ),
+
+          onTap: () { 
+            setState(() {
+              if (alreadySaved) {
+                _saved.remove(pair);
+              } else {
+                _saved.add(pair);
+              }
+            });
+          },
         );
       },
     );
