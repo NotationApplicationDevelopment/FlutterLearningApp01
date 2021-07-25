@@ -9,16 +9,22 @@ class _TimerState {
     var hwt = accurateTimer.heavyWaitingTime;
     var ct = accurateTimer.clockTick;
 
+    Future<void> timeWaiter() async {
+      await Future.delayed(duration - hwt);
+      while (!_canseled && (_sw.elapsed - _nextTick).isNegative) {
+        await Future.delayed(ct);
+      }
+    }
+
     Future<void> callbacker() async {
       if (!_canseled) {
         callback(accurateTimer);
-        _count++;
-        if(_count == loopCount - 1){
+        if (_count == 0/*loopCount - 1*/) {
           _count = 0;
           _nextTick = Duration.zero;
           _sw.reset();
           _sw.start();
-        }else{
+        } else {
           _count++;
         }
       }
@@ -29,10 +35,7 @@ class _TimerState {
       callback(accurateTimer);
       _sw.start();
       while (!_canseled) {
-        await Future.delayed(duration - hwt);
-        while (!_canseled && (_sw.elapsed - _nextTick).isNegative) {
-          await Future.delayed(ct);
-        }
+        await timeWaiter();
         callbacker();
         _nextTick += duration;
       }
@@ -43,7 +46,6 @@ class _TimerState {
   }
 
   int get count => _count;
-  
 
   Duration cancel() {
     _canseled = true;
@@ -79,7 +81,7 @@ class AccurateTimer {
   set duration(Duration value) {
     if (value.compareTo(_duration) == 0) return;
     _duration = value;
-    if (_nextDelay.compareTo(_duration) > 0 ){
+    if (_nextDelay.compareTo(_duration) > 0) {
       _nextDelay = _duration;
     }
     if (_isRunning) {
