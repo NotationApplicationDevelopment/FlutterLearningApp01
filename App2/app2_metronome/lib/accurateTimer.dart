@@ -79,6 +79,9 @@ class AccurateTimer {
   set duration(Duration value) {
     if (value.compareTo(_duration) == 0) return;
     _duration = value;
+    if (_nextDelay.compareTo(_duration) > 0 ){
+      _nextDelay = _duration;
+    }
     if (_isRunning) {
       pause();
       start();
