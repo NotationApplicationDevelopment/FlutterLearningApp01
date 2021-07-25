@@ -1,5 +1,3 @@
-import "dart:isolate";
-
 class _TimerState {
   bool _canseled = false;
   Stopwatch _sw = Stopwatch();
