@@ -3,41 +3,32 @@ class _TimerState {
   Stopwatch _sw = Stopwatch();
   late Duration _nextTick;
   int _count = 0;
-  int loopCount = 16;
   _TimerState.periodic(AccurateTimer accurateTimer, Duration delay,
       Duration duration, void Function(AccurateTimer) callback) {
     var hwt = accurateTimer.heavyWaitingTime;
-    var ct = accurateTimer.clockTick;
-
+    var def = Duration.zero;
     Future<void> timeWaiter() async {
-      await Future.delayed(duration - hwt);
-      while (!_canseled && (_sw.elapsed - _nextTick).isNegative) {
-        await Future.delayed(ct);
+      await Future.delayed(duration - def - hwt);
+      while (!_canseled && _sw.elapsed.compareTo(_nextTick) <= 0) {
       }
+      def = _sw.elapsed - _nextTick;
+      _nextTick += duration;
     }
 
     Future<void> callbacker() async {
       if (!_canseled) {
         callback(accurateTimer);
-        if (_count == 0/*loopCount - 1*/) {
-          _count = 0;
-          _nextTick = Duration.zero;
-          _sw.reset();
-          _sw.start();
-        } else {
-          _count++;
-        }
+        _count++;
       }
     }
 
     Future<void> timerTicks() async {
-      _nextTick = duration + delay;
+      _nextTick = delay;
       callback(accurateTimer);
       _sw.start();
       while (!_canseled) {
         await timeWaiter();
         callbacker();
-        _nextTick += duration;
       }
       _sw.stop();
     }
@@ -54,11 +45,10 @@ class _TimerState {
 }
 
 class AccurateTimer {
-  late _TimerState _state;
+  _TimerState? _state;
   Duration _nextDelay = Duration.zero;
   bool _isRunning = false;
-  Duration _heavyWaitingTime = Duration(milliseconds: 30);
-  Duration _clockTick = Duration(microseconds: 500);
+  Duration _heavyWaitingTime = Duration(milliseconds: 20);
   void Function(AccurateTimer) _callback;
   Duration _duration;
 
@@ -66,16 +56,11 @@ class AccurateTimer {
 
   bool get isRunning => _isRunning;
   Duration get heavyWaitingTime => _heavyWaitingTime;
-  Duration get clockTick => _clockTick;
   Duration get duration => _duration;
-  int get count => _state.count;
+  int get count => _state?.count ?? 0;
 
   set heavyWaitingTime(Duration value) {
     _heavyWaitingTime = value.abs();
-  }
-
-  set clockTick(Duration value) {
-    _clockTick = value.abs();
   }
 
   set duration(Duration value) {
@@ -98,13 +83,13 @@ class AccurateTimer {
 
   void pause() {
     if (!_isRunning) return;
-    _nextDelay = _state.cancel();
+    _nextDelay = _state?.cancel() ?? Duration.zero;
     _isRunning = false;
   }
 
   void reset() {
     if (_isRunning) {
-      _state.cancel();
+      _state?.cancel();
       _isRunning = false;
     }
     _nextDelay = Duration.zero;
