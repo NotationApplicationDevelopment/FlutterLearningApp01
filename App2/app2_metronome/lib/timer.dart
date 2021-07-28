@@ -23,7 +23,7 @@ class _ClockState extends State<Clock> {
     audioCache.load('sounds/se2a.wav');
     audioCache2.load('sounds/se2b.wav');
     var tim = AccurateTimer.periodic(
-      Duration(milliseconds: 125),
+      Duration(milliseconds: 250),
       _onTimer
     );
     tim.start();
