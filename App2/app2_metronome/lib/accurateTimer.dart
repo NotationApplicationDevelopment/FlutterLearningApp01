@@ -1,3 +1,5 @@
+import 'package:flutter/scheduler.dart';
+
 class _TimerState {
   bool _canseled = false;
   Stopwatch _sw = Stopwatch();
@@ -7,10 +9,18 @@ class _TimerState {
       Duration duration, void Function(AccurateTimer) callback) {
     var hwt = accurateTimer.heavyWaitingTime;
     var def = Duration.zero;
-    Future<void> timeWaiter() async {
-      await Future.delayed(duration - def - hwt);
+
+    void timeWaiter2(){
       while (!_canseled && _sw.elapsed.compareTo(_nextTick) <= 0) {
       }
+    }
+
+    Future<void> timeWaiter() async {
+      await Future.delayed(duration - def - hwt);
+      
+      var sb = SchedulerBinding.instance;
+
+      await sb?.scheduleTask(timeWaiter2, Priority.touch);
       def = _sw.elapsed - _nextTick;
       _nextTick += duration;
     }
@@ -28,6 +38,7 @@ class _TimerState {
       _sw.start();
       while (!_canseled) {
         await timeWaiter();
+        //sb?.scheduleTask(callbacker, Priority.touch);
         callbacker();
       }
       _sw.stop();
