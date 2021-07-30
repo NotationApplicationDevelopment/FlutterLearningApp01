@@ -1,4 +1,12 @@
+library metronome;
+
+import 'dart:async';
+import 'metronome_stub.dart'
+    if (dart.library.js) 'metronome_web.dart';
+    //if (dart.library.io) 'metronome_io.dart';
+    
 abstract class Metronome {
+  
   Stopwatch _sw = new Stopwatch();
   int _count = 0;
   late double _bpm;
@@ -7,8 +15,9 @@ abstract class Metronome {
   late Duration _interval;
   Duration _realInterval = Duration.zero;
 
-  Metronome(List<String> soundPaths,
-      {double bpm = 120, int beat = 4, int note = 4}) {
+  factory Metronome(List<String> soundPaths, {double bpm = 120, int beat = 4, int note = 4}) => getMetronome(soundPaths, bpm, beat, note);
+
+  Metronome.abstract(List<String> soundPaths, double bpm, int beat, int note) {
     loadSounds(soundPaths);
     _bpm = bpm;
     _beat = beat;
@@ -54,27 +63,29 @@ abstract class Metronome {
 
   void loadSounds(List<String> soundPaths);
   void playSound(int index);
-  Future<void> _startCounter();
-  Future<void> _stopCounter();
-  Future<void> _resetCounter();
+  void dispose();
+  
+  FutureOr<void> startCounter();
+  FutureOr<void> stopCounter();
+  FutureOr<void> resetCounter();
 
-  Future<void> start() async {
+  FutureOr<void> start() async {
     if(isRunning) return;
     _sw.start();
-    await _startCounter();
+    await startCounter();
   }
 
-  Future<void> stop() async {
+  FutureOr<void> stop() async {
     if(!isRunning) return;
     _sw.stop();
-    await _stopCounter();
+    await stopCounter();
   }
 
-  Future<void> reset() async {
+  FutureOr<void> reset() async {
     stop();
     _sw.reset();
     _count = 0;
-    await _resetCounter();
+    await resetCounter();
   }
 
   void countUp() {

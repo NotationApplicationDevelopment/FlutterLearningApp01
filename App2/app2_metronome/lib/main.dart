@@ -1,4 +1,5 @@
-import 'timer.dart';
+import 'package:app2_metronome/metronome/metronome.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -37,30 +38,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  html.Worker? myWorker;
+  var met = Metronome(["sounds/se1a.wav"]);
+  @override
+  void dispose() {
+    met.dispose();
+    super.dispose();
+  }
+
   void _incrementCounter() {
-        
-    if (html.Worker.supported) {
-      if(myWorker == null){
-        const String source = "importScripts(location.origin + '/worker.js');// entryPoint();";
-        final code = html.Blob([source], 'text/javascript');
-        String codeUrl = html.Url.createObjectUrlFromBlob(code);
-        
-        myWorker = new html.Worker(codeUrl);
-        myWorker!.onError.listen((event) {
-          print("on error!!");
-        });
-        myWorker!.onMessage.listen((event) async {
-          
-          var audio = new AudioCache(fixedPlayer: new AudioPlayer());
-          audio.play('sounds/se1a.wav');
-          print((event.data as String) + ": from js.");
-        });
-      }
-
-      myWorker!.postMessage("test!");
-    }
-
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -68,7 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-      Clock.isPlay = true;
     });
   }
 
@@ -113,7 +97,20 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
-            Clock(),
+            ElevatedButton(
+              child: const Text('ON/OFF'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.blueAccent,
+                onPrimary: Colors.white,
+              ),
+              onPressed: () {
+                if (met.isRunning) {
+                  met.stop();
+                } else {
+                  met.start();
+                }
+              },
+            ),
           ],
         ),
       ),

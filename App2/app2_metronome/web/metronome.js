@@ -3,7 +3,9 @@ function delay(n){
       setTimeout(resolve,n);
   });
 }
+
 var play = false;
+
 onmessage = async function(e) {
   play = !play;
   while(play){
