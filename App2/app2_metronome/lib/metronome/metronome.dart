@@ -44,6 +44,7 @@ abstract class Metronome {
     if (_bpm != value) {
       _bpm = value;
       _intervalUpdate();
+      reset();
     }
   }
 
@@ -51,6 +52,7 @@ abstract class Metronome {
     if (_beat != value) {
       _beat = value;
       _intervalUpdate();
+      reset();
     }
   }
 
@@ -58,6 +60,7 @@ abstract class Metronome {
     if (_note != value) {
       _note = value;
       _intervalUpdate();
+      reset();
     }
   }
 
@@ -96,7 +99,6 @@ abstract class Metronome {
 
   void _intervalUpdate() async {
     _interval = Duration(seconds: 1) * (240.0 / (_bpm * _note));
-    reset();
   }
 
   @override
