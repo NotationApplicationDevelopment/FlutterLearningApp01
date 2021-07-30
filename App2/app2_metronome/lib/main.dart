@@ -38,7 +38,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  var met = Metronome(["sounds/se1a.wav"]);
+  var met = Metronome(["sounds/se1a.wav","sounds/se2a.wav"]);
   @override
   void dispose() {
     met.dispose();
@@ -46,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _incrementCounter() {
+    met.playSound(1);
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
