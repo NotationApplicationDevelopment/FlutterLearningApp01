@@ -56,6 +56,7 @@ class MetronomeWeb extends Metronome {
         });
 
         counter!.onMessage.listen((event) async {
+          print("${event.data as String}");
           countUp();
         });
       }
@@ -72,17 +73,20 @@ class MetronomeWeb extends Metronome {
 
   @override
   FutureOr<void> resetCounter() {
-    counter?.postMessage(_CounterMassage.reset(beatInterval));
+    var mes = CounterMassage.reset(beatInterval).asMap;
+    counter?.postMessage(mes);
   }
 
   @override
   FutureOr<void> startCounter() {
-    counter?.postMessage(_CounterMassage.start(beatInterval));
+    var mes = CounterMassage.start(beatInterval).asMap;
+    counter?.postMessage(mes);
   }
 
   @override
   FutureOr<void> stopCounter() {
-    counter?.postMessage(_CounterMassage.stop(beatInterval));
+    var mes = CounterMassage.stop(beatInterval).asMap;
+    counter?.postMessage(mes);
   }
 
   _clearPlayers() {
@@ -99,22 +103,25 @@ class MetronomeWeb extends Metronome {
   }
 }
 
-class _CounterMassage{
-  late String command;
-  late int intervalMicroseconds;
+class CounterMassage{
+  late final String _command;
+  late final int _intervalMicroseconds;
   
-  _CounterMassage.start(Duration interval){
-    command = "start";
-    intervalMicroseconds = interval.inMicroseconds;
+  String get command => _command;
+  int get intervalMicroseconds => _intervalMicroseconds;
+  Map<String, String> get asMap => {"command":_command, "intervalMicroseconds": _intervalMicroseconds.toString()};
+  CounterMassage.start(Duration interval){
+    _command = "start";
+    _intervalMicroseconds = interval.inMicroseconds;
   }
   
-  _CounterMassage.stop(Duration interval){
-    command = "stop";
-    intervalMicroseconds = interval.inMicroseconds;
+  CounterMassage.stop(Duration interval){
+    _command = "stop";
+    _intervalMicroseconds = interval.inMicroseconds;
   }
   
-  _CounterMassage.reset(Duration interval){
-    command = "reset";
-    intervalMicroseconds = interval.inMicroseconds;
+  CounterMassage.reset(Duration interval){
+    _command = "reset";
+    _intervalMicroseconds = interval.inMicroseconds;
   }
 }
