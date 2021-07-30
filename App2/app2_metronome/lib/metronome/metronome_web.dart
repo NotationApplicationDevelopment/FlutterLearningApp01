@@ -72,17 +72,17 @@ class MetronomeWeb extends Metronome {
 
   @override
   FutureOr<void> resetCounter() {
-    counter?.postMessage("reset");
+    counter?.postMessage(_CounterMassage.reset(beatInterval));
   }
 
   @override
   FutureOr<void> startCounter() {
-    counter?.postMessage("start");
+    counter?.postMessage(_CounterMassage.start(beatInterval));
   }
 
   @override
   FutureOr<void> stopCounter() {
-    counter?.postMessage("stop");
+    counter?.postMessage(_CounterMassage.stop(beatInterval));
   }
 
   _clearPlayers() {
@@ -96,5 +96,25 @@ class MetronomeWeb extends Metronome {
   void dispose() {
     _clearPlayers();
     counter?.terminate();
+  }
+}
+
+class _CounterMassage{
+  late String command;
+  late int intervalMicroseconds;
+  
+  _CounterMassage.start(Duration interval){
+    command = "start";
+    intervalMicroseconds = interval.inMicroseconds;
+  }
+  
+  _CounterMassage.stop(Duration interval){
+    command = "stop";
+    intervalMicroseconds = interval.inMicroseconds;
+  }
+  
+  _CounterMassage.reset(Duration interval){
+    command = "reset";
+    intervalMicroseconds = interval.inMicroseconds;
   }
 }
