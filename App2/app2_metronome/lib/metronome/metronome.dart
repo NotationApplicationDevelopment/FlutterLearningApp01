@@ -95,8 +95,9 @@ abstract class Metronome {
     _sw.reset();
   }
 
-  void _intervalUpdate() {
+  void _intervalUpdate() async {
     _interval = Duration(seconds: 1) * (240.0 / (_bpm * _note));
+    reset();
   }
 
   @override
