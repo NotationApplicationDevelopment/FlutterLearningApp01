@@ -96,9 +96,11 @@ class MetronomeWeb extends Metronome {
           print("on error!!");
         });
 
-        counter!.onMessage.listen((event) async {
-          print("${event.data as String}");
-          countUp();
+        counter!.onMessage.listen((event) {
+          scheduleMicrotask(() {
+            print("${event.data as String}");
+            countUp();
+          });
         });
       }
     }
