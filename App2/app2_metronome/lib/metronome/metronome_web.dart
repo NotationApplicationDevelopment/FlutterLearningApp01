@@ -42,33 +42,13 @@ class MetronomeWeb extends Metronome {
     }
   }
 
-  void _counterInit(List<String> soundPaths) {
-    if (counter == null) {
-      const String source =
-          "importScripts(location.origin + '/metronome.js');// entryPoint();";
-      final code = html.Blob([source], 'text/javascript');
-      String codeUrl = html.Url.createObjectUrlFromBlob(code);
-
-      counter = new html.Worker(codeUrl);
-      if (counter != null) {
-        counter!.onError.listen((event) {
-          print("on error!!");
-        });
-
-        counter!.onMessage.listen((event) async {
-          print("${event.data as String}");
-          countUp();
-        });
-      }
-    }
-  }
-
   @override
-  void playSound(int index) {
+  void playSound(int index) async {
     print("playSound");
-    _players[index].pause();
-    _players[index].seek(Duration.zero);
-    _players[index].play();
+    var player = _players[index];
+    await player.pause();
+    await player.seek(null);
+    player.play();
   }
 
   @override
@@ -88,6 +68,13 @@ class MetronomeWeb extends Metronome {
     var mes = CounterMassage.stop(beatInterval).asMap;
     counter?.postMessage(mes);
   }
+  
+  @override
+  void dispose() {
+    _clearPlayers();
+    counter?.terminate();
+  }
+  
 
   _clearPlayers() {
     for (var player in _players) {
@@ -95,11 +82,26 @@ class MetronomeWeb extends Metronome {
     }
     _players.clear();
   }
-  
-  @override
-  void dispose() {
-    _clearPlayers();
-    counter?.terminate();
+
+  void _counterInit(List<String> soundPaths) {
+    if (counter == null) {
+      const String source =
+          "importScripts(location.origin + '/metronome.js');// entryPoint();";
+      final code = html.Blob([source], 'text/javascript');
+      String codeUrl = html.Url.createObjectUrlFromBlob(code);
+
+      counter = new html.Worker(codeUrl);
+      if (counter != null) {
+        counter!.onError.listen((event) {
+          print("on error!!");
+        });
+
+        counter!.onMessage.listen((event) async {
+          print("${event.data as String}");
+          countUp();
+        });
+      }
+    }
   }
 }
 
