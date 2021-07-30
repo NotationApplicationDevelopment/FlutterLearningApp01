@@ -82,7 +82,6 @@ abstract class Metronome {
   }
 
   FutureOr<void> reset() async {
-    stop();
     _sw.reset();
     _count = 0;
     await resetCounter();
