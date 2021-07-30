@@ -41,15 +41,15 @@ class _ClockState extends State<Clock> {
     if(Clock.isPlay){
       if(timer.count % 4 == 0){
         Future(() async => {
-          await audioCache.fixedPlayer?.stop(),
+          //await audioCache.fixedPlayer?.stop(),
           //await audioCache.fixedPlayer?.seek(Duration.zero),
-          await audioCache.play('sounds/se2a.wav')
+          //await audioCache.play('sounds/se2a.wav')
         });
       }else{
         Future(() async => {
-          await audioCache2.fixedPlayer?.stop(),
+          //await audioCache2.fixedPlayer?.stop(),
           //await audioCache2.fixedPlayer?.seek(Duration.zero),
-          await audioCache2.play('sounds/se2b.wav')
+          //await audioCache2.play('sounds/se2b.wav')
         });
       }
     }

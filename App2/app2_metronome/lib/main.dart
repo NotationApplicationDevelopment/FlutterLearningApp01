@@ -37,8 +37,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-
+  html.Worker? myWorker;
   void _incrementCounter() {
+        
+    if (html.Worker.supported) {
+      if(myWorker == null){
+        const String source = "importScripts(location.origin + '/worker.js');// entryPoint();";
+        final code = html.Blob([source], 'text/javascript');
+        String codeUrl = html.Url.createObjectUrlFromBlob(code);
+        
+        myWorker = new html.Worker(codeUrl);
+        myWorker!.onError.listen((event) {
+          print("on error!!");
+        });
+        myWorker!.onMessage.listen((event) async {
+          
+          var audio = new AudioCache(fixedPlayer: new AudioPlayer());
+          audio.play('sounds/se1a.wav');
+          print((event.data as String) + ": from js.");
+        });
+      }
+
+      myWorker!.postMessage("test!");
+    }
+
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
