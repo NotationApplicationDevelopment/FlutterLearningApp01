@@ -2,31 +2,32 @@ var timer;
 var promise;
 var play = false;
 
-function delay(n) {
-  const startTime = performance.now();
-  const m = Number(n) * 0.001;
+function delayTo(end) {
   return new Promise(function (resolve) {
-    timer = setTimeout(resolve, n / 1000 - 30);
-    while ((performance.now() - startTime) < m);
+    const n = end - performance.now();
+    timer = setTimeout(resolve, n - 30);
+    while (performance.now() < n);
   });
 }
 
-async function timerStart(intervalMicroseconds) {
-  return promise = new Promise(async function (resolve) {
-    if (play == false) {
+async function timerStart(intervalMilliSeconds) {
+  if (play == false) {
+    return promise = new Promise(async function (resolve) {
       play = true;
+      var end = performance.now();
       while (play) {
-        await delay(intervalMicroseconds);
+        end += parseFloat(intervalMilliSeconds);
+        await delayTo(end - 200);
         if (play) {
-          postMessage('js:callback');
+          postMessage(end);
+          await delayTo(end);
         }
       }
-    }
-  });
+    });
+  }
 }
 
 async function timerStop() {
-  cleared = false;
   play = false;
   clearInterval(timer);
   await promise;
@@ -35,11 +36,11 @@ async function timerStop() {
 
 onmessage = async function (e) {
   var command = e.data['command'];
-  var intervalMicroseconds = e.data['intervalMicroseconds'];
+  var intervalMilliSeconds = e.data['intervalMilliSeconds'];
 
   switch (command) {
     case 'start':
-      await timerStart(intervalMicroseconds);
+      await timerStart(intervalMilliSeconds);
       break;
 
     case 'stop':
@@ -51,7 +52,7 @@ onmessage = async function (e) {
     case 'reset':
       if (play == true) {
         await timerStop();
-        await timerStart(intervalMicroseconds);
+        await timerStart(intervalMilliSeconds);
       }
       break;
   }

@@ -21,10 +21,10 @@ class MetronomeWeb extends Metronome {
   @override
   void loadSounds(List<String> soundPaths) async {
     _counterInit(soundPaths);
-    
+
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.music());
-    
+
     _clearPlayers();
     for (var path in soundPaths) {
       var player = new AudioPlayer();
@@ -68,13 +68,12 @@ class MetronomeWeb extends Metronome {
     var mes = CounterMassage.stop(beatInterval).asMap;
     counter?.postMessage(mes);
   }
-  
+
   @override
   void dispose() {
     _clearPlayers();
     counter?.terminate();
   }
-  
 
   _clearPlayers() {
     for (var player in _players) {
@@ -98,8 +97,11 @@ class MetronomeWeb extends Metronome {
 
         counter!.onMessage.listen((event) {
           scheduleMicrotask(() {
-            print("${event.data as String}");
+            var par = html.window.performance;
+            var end = event.data;
+            while (par.now() <= end) {}
             countUp();
+            //print("interval : ${realbeatInterval.inMicroseconds *0.000001}");
           });
         });
       }
@@ -107,25 +109,28 @@ class MetronomeWeb extends Metronome {
   }
 }
 
-class CounterMassage{
+class CounterMassage {
   late final String _command;
-  late final int _intervalMicroseconds;
-  
+  late final double _intervalMilliSeconds;
+
   String get command => _command;
-  int get intervalMicroseconds => _intervalMicroseconds;
-  Map<String, String> get asMap => {"command":_command, "intervalMicroseconds": _intervalMicroseconds.toString()};
-  CounterMassage.start(Duration interval){
+  double get intervalMilliSeconds => _intervalMilliSeconds;
+  Map<String, String> get asMap => {
+        "command": _command,
+        "intervalMilliSeconds": _intervalMilliSeconds.toString()
+      };
+  CounterMassage.start(Duration interval) {
     _command = "start";
-    _intervalMicroseconds = interval.inMicroseconds;
+    _intervalMilliSeconds = interval.inMicroseconds * 0.001;
   }
-  
-  CounterMassage.stop(Duration interval){
+
+  CounterMassage.stop(Duration interval) {
     _command = "stop";
-    _intervalMicroseconds = interval.inMicroseconds;
+    _intervalMilliSeconds = interval.inMicroseconds * 0.001;
   }
-  
-  CounterMassage.reset(Duration interval){
+
+  CounterMassage.reset(Duration interval) {
     _command = "reset";
-    _intervalMicroseconds = interval.inMicroseconds;
+    _intervalMilliSeconds = interval.inMicroseconds * 0.001;
   }
 }
